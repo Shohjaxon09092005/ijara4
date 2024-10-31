@@ -1,0 +1,35 @@
+
+            function pushInit(tags) {
+                var OneSignal = window.OneSignal || [];
+                OneSignal.push(["init", {
+                    appId: "4756b996-db63-4fd6-93a9-9e3e9da3c11c",
+                    safari_web_id: "web.onesignal.auto.5f8d50ad-7ec3-4f1c-a2de-134e8949294e",
+                    welcomeNotification: {
+                        disabled: true
+                    },
+                }]);
+                OneSignal.push(function () {
+                    OneSignal.showNativePrompt();
+                    OneSignal.sendTags(tags).then(tagsSent => console.log(tagsSent));
+                });
+                var OneSignal = window.OneSignal || [];
+//                OneSignal.push(["init", {
+//                    appId: "4756b996-db63-4fd6-93a9-9e3e9da3c11c",
+//                    safari_web_id: "web.onesignal.auto.5f8d50ad-7ec3-4f1c-a2de-134e8949294e",
+//                    autoRegister: true,
+//                    welcomeNotification: {
+//                        disabled: true
+//                    },
+//                    promptOptions: {
+//                        actionMessage: "Подписаться на уведомления для получения специальных предложений",
+//                        acceptButtonText: "Подписаться",
+//                        cancelButtonText: "Отказаться"
+//                    }
+//                }]);
+//                OneSignal.push(function () {
+//                    OneSignal.sendTags(tags).then(function (tagsSent) {
+//                        console.log(tagsSent);
+//                    });
+//                });
+            }
+            

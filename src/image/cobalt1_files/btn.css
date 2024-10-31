@@ -1,0 +1,80 @@
+.btn {
+    -moz-box-shadow: 0 0.2em 3px rgba(122,122,122,0.5);
+    -webkit-box-shadow: 0 0.2em 3px rgba(122,122,122,0.5);
+    -o-box-shadow: 0 0.2em 3px rgba(122,122,122,0.5);
+    box-shadow: 0 0.2em 3px rgba(122,122,122,0.5);
+    display: inline-block;
+    margin: 1px;
+
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    touch-action: manipulation;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.btn-bold {
+    font-weight: bold;
+}
+.btn-xs{
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+.btn-sm{
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+.btn-lg{
+    padding: 10px 16px;
+    font-size: 18px;
+    line-height: 1.3333333;
+    border-radius: 6px;
+}
+
+.btn-yellow{}
+.btn-blue{
+    color: white;
+    background: -moz-linear-gradient(to bottom, #085c8f, #064c85);
+    background: -webkit-linear-gradient(to bottom, #085c8f, #064c85);
+    background: -o-linear-gradient(to bottom, #085c8f, #064c85);
+    background: -ms-linear-gradient(to bottom, #085c8f, #064c85);
+    background: linear-gradient(to bottom, #085c8f, #064c85);
+}
+.btn-blue:hover{
+    color: white;
+    opacity: 0.9;
+}
+.btn-red{
+    color: white;
+    background: -moz-linear-gradient(to bottom, #fc4847, #c50304);
+    background: -webkit-linear-gradient(to bottom, #fc4847, #c50304);
+    background: -o-linear-gradient(to bottom, #fc4847, #c50304);
+    background: -ms-linear-gradient(to bottom, #fc4847, #c50304);
+    background: linear-gradient(to bottom, #fc4847, #c50304);
+}
+.btn-red:hover{
+    color: white;
+    opacity: 0.9;
+}
+.btn-yellow{
+    color: black;
+    background: -moz-linear-gradient(to bottom, #ffe400, #f7dc00);
+    background: -webkit-linear-gradient(to bottom, #ffe400, #f7dc00);
+    background: -o-linear-gradient(to bottom, #ffe400, #f7dc00);
+    background: -ms-linear-gradient(to bottom, #ffe400, #f7dc00);
+    background: linear-gradient(to bottom, #ffe400, #f7dc00);
+}
+.btn-yellow:hover{
+    color: black;
+    opacity: 0.9;
+}

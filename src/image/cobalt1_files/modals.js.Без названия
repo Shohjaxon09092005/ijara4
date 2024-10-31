@@ -1,0 +1,548 @@
+function formatNum(num) {
+    num = String(num);
+    num = num.replace(/(\.(.*))/g, '');
+    var arr = num.split('');
+    var num_temp = '';
+    if (num.length > 3) {
+        for (var i = arr.length - 1, j = 1; i >= 0; i--, j++) {
+            num_temp = arr[i] + num_temp;
+            if (j % 3 == 0) {
+                num_temp = ' ' + num_temp;
+            }
+        }
+        return num_temp;
+    } else {
+        return num;
+    }
+}
+function validatePhone(phone) {
+    return (phone.search(/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}/i) !== -1) && window['libphonenumber-js'].isValidNumber(phone, 'RU');
+}
+
+function validateName(name) {
+    return name.search(/^[а-яА-ЯёЁa-zA-Z]{2,}/i) !== -1;
+}
+
+function popupOpen(t, c) {
+    setTimeout(function () {
+        $('.' + c).magnificPopup('open');
+    }, t * 1000);
+}
+function getPageInfo() {
+    var res;
+    res = $.ajax({
+        url: '/api/get_car_info_by_url.php',
+        async: false,
+        data: {
+            "url": window.location.href
+        },
+        type: 'get'
+    }).responseText;
+    return $.parseJSON(res);
+}
+
+function getTypePage() {
+    var url = window.location.href;
+    var model = false,
+        brands = false,
+        other = false,
+        type;
+    if (url.search(/catalog\/.+\/.+/i) !== -1) {
+        model = true;
+        type = 'model';
+    } else  if (url.search(/catalog\/.+\//i) !== -1){
+        other = true;
+        type = 'other';
+    } else  if (url.search(/catalog\//i) !== -1){
+        brands = true;
+        type = 'brands';
+    } else {
+        other = true;
+        type = 'other';
+    }
+    return type;
+}
+
+var pageInfo = getPageInfo();
+
+$(document).ready(function () {
+    var timer_date = new Date(Date.parse(new Date()) + ((40) * 60 * 60 * 1000) + ((27) * 60 * 1000) + ((17) * 1000));
+    var timer_cookie = $.cookie('timer');
+    if (timer_cookie === null) {
+        $.cookie('timer', timer_date,{
+            path: '/'
+        });
+    } else {
+        if (new Date(Date.parse(timer_cookie)) <= new Date()) {
+            $.cookie('timer', timer_date,{
+                path: '/'
+            });
+        }
+    }
+
+    var pageType = getTypePage();
+    switch (pageType) {
+        case 'brands':
+            if ($.cookie('modal_raffle_gifts') !== 'sender'){
+                popupOpen(180, 'popup-raffle-gifts');
+            } else if($.cookie('modal_profitable_loan') !== 'sender'){
+                popupOpen(180, 'popup-profitable-loan');
+            }
+            break;
+        case 'model':
+            if ($.cookie('modal_hurry_to_book') !== 'sender'){
+                popupOpen(90, 'popup-hurry-to-book');
+            } else if($.cookie('modal_raffle_gifts') !== 'sender'){
+                popupOpen(90, 'popup-raffle-gifts');
+            }
+            break;
+        case 'other':
+            if ($.cookie('modal_profitable_loan') !== 'sender'){
+                popupOpen(180, 'popup-profitable-loan');
+            } else if($.cookie('modal_raffle_gifts') !== 'sender'){
+                popupOpen(180, 'popup-raffle-gifts');
+            }
+            break;
+    }
+});
+
+
+
+
+// Call Back
+$(document).ready(function () {
+    var block = $('#modal_callback');
+
+    $('.popup-callback').magnificPopup({
+        type: 'inline',
+        preloader: false,
+        modal: false,
+        focus: "#modal_callback",
+        callbacks: {
+            beforeOpen: function () {
+                $.ajax({
+                    url: '/open_popup.php',
+                    data: {"type": "callback", "type_car": "new", "project": "vsecrediti.com"},
+                    type: 'post'
+                });
+            },
+            beforeClose: function () {
+
+            }
+        }
+    });
+    $(".js-phone-mask", block).mask("+7 (e99) 999-99-99", {placeholder: " "});
+    $('#modal-close,#modal-close-button,.js-close-popup-sec', block).click(function (e) {
+        e.preventDefault();
+        $.magnificPopup.close();
+    });
+    $('.js-send-popup-form', block).click(function (e) {
+        e.preventDefault();
+    });
+    $('.js-send-popup-form', block).click(function (e) {
+        var phone_input = $('.js-phone-mask', block);
+        var name_input = $('.popup-fields__input[name=name]', block);
+        var phone_number = phone_input.val();
+        var name = name_input.val();
+
+        var val_phone = validatePhone(phone_number);
+        var val_name = validateName(name);
+
+        if (!val_phone) phone_input.css({"border": "2px #ff375d solid"});
+        if (!val_name) name_input.css({"border": "2px #ff375d solid"});
+        if (val_phone) phone_input.css({"border": "2px #343434 solid"});
+        if (val_name) name_input.css({"border": "2px #343434 solid"});
+
+
+        if (val_phone && val_name) {
+            var finish_msg = "<div class=\"popup-final-msg\">Наши операторы скоро свяжутся с Вами</div>";
+            $('.popup-sec__wrap', block).html(finish_msg);
+            $.ajax({
+                url: '/modal_form.php',
+                data: {
+                    "phone": phone_number,
+                    "name": name,
+                    "url_query": window.location.search,
+                    "url": window.location.href,
+                    "type_lead": "callback"
+                },
+                type: 'post',
+                success: function (data) {
+                    yaCounter51334798.reachGoal('callback');
+                    if (checkAvailabilitySubmitForm()){
+                        yaCounter51334798.reachGoal('total');
+                    }
+                    pxsc("is_lead",1,90);
+                    gtag_report_conversion();
+                    if (window._tmr) _tmr.push({id:'3086590',type:'reachGoal',goal:'zayavka'});
+                    console.log(data);
+                },
+                error: function (e) {
+                    console.log(e);
+                }
+            });
+        }
+    });
+});
+
+// Кредит Таймер
+$(document).ready(function () {
+    var block = $('#profitable-loan');
+
+    $('.popup-profitable-loan').magnificPopup({
+        type: 'inline',
+        preloader: false,
+        modal: false,
+        focus: "#profitable-loan",
+        callbacks: {
+            beforeOpen: function () {
+                $.ajax({
+                    url: '/open_popup.php',
+                    data: {"type": "profitable-loan", "type_car": "new", "project": "vsecrediti.com"},
+                    type: 'post'
+                });
+            },
+            beforeClose: function () {
+                var pageType = getTypePage();
+                switch (pageType) {
+                    case 'brands':
+
+                        break;
+                    case 'model':
+
+                        break;
+                    case 'other':
+                        if ($.cookie('modal_raffle_gifts') !== 'sender'){
+                            popupOpen(90, 'popup-raffle-gifts');
+                        }
+                        break;
+                }
+            }
+        }
+    });
+
+    $(".js-phone-mask", block).mask("+7 (e99) 999-99-99", {placeholder: " "});
+
+    var deadline = new Date(Date.parse($.cookie('timer'))); // for endless timer
+    initializeClock('clockdiv', deadline);
+
+    $('#modal-close,#modal-close-button,.js-close-popup-sec', block).click(function (e) {
+        e.preventDefault();
+        $.magnificPopup.close();
+    });
+
+    $('.js-send-popup-form', block).click(function (e) {
+        e.preventDefault();
+    });
+
+    $('.js-send-popup-form', block).click(function (e) {
+        var phone_input = $('.js-phone-mask', block);
+        var phone_number = phone_input.val();
+        if (validatePhone(phone_number)) {
+            phone_input.css({"border": "2px #343434 solid"});
+            var finish_msg = "<div class=\"popup-final-msg\">Наши операторы скоро свяжутся с Вами</div>";
+            $('.popup-sec__wrap', block).html(finish_msg);
+            $.ajax({
+                url: '/modal_form.php',
+                data: {
+                    "phone": phone_number,
+                    "url_query": window.location.search,
+                    "url": window.location.href,
+                    "type_lead": "profitable-loan"
+                },
+                type: 'post',
+                success: function (data) {
+                    yaCounter51334798.reachGoal('popup_autcredit');
+                    if (checkAvailabilitySubmitForm()){
+                        yaCounter51334798.reachGoal('total');
+                    }
+                    pxsc("is_lead",1,90);
+                    gtag_report_conversion();
+                    if (window._tmr) _tmr.push({id:'3086590',type:'reachGoal',goal:'zayavka'});
+                    $.cookie('modal_profitable_loan', 'sender', {
+                        path: '/'
+                    })
+                },
+                error: function (e) {
+                }
+            });
+        } else {
+            phone_input.css({"border": "2px #ff375d solid"});
+        }
+    });
+});
+
+// hurry-to-book
+$(document).ready(function () {
+    if (pageInfo.brand && pageInfo.model){
+        var block = $('#hurry-to-book');
+
+        $('.ctl-info .b',block).html(pageInfo.brand.group_name);
+        $('.ctl-info .m',block).html(pageInfo.model.good_name);
+        $('.ctl-info .disc',block).html(formatNum(pageInfo.model.good_discount));
+        $('.b-img',block).attr('src', pageInfo.images.brand);
+        $('.m-img',block).attr('src', pageInfo.images.model_main);
+
+        $('.popup-hurry-to-book').magnificPopup({
+            type: 'inline',
+            preloader: false,
+            modal: false,
+            focus: "#hurry-to-book",
+            callbacks: {
+                beforeOpen: function () {
+                    $.ajax({
+                        url: '/open_popup.php',
+                        data: {"type": "hurry-to-book", "type_car": "new", "project": "vsecrediti.com"},
+                        type: 'post'
+                    });
+                },
+                beforeClose: function () {
+                    var pageType = getTypePage();
+                    switch (pageType) {
+                        case 'brands':
+
+                            break;
+                        case 'model':
+                            if ($.cookie('modal_raffle_gifts') !== 'sender'){
+                                popupOpen(90, 'popup-raffle-gifts');
+                            }
+                            break;
+                        case 'other':
+
+                            break;
+                    }
+                }
+            }
+        });
+
+
+
+        $(".js-phone-mask", block).mask("+7 (e99) 999-99-99", {placeholder: " "});
+
+        $('#modal-close,#modal-close-button,.js-close-popup-sec', block).click(function (e) {
+            e.preventDefault();
+            $.magnificPopup.close();
+        });
+
+        $('.js-send-popup-form', block).click(function (e) {
+            e.preventDefault();
+        });
+
+        $('.js-send-popup-form', block).click(function (e) {
+            var phone_input = $('.js-phone-mask', block);
+            var phone_number = phone_input.val();
+            if (validatePhone(phone_number)) {
+                phone_input.css({"border": "2px #343434 solid"});
+                var finish_msg = "<div class=\"popup-final-msg\">Наши операторы скоро свяжутся с Вами</div>";
+                $('.popup-sec__wrap', block).html(finish_msg);
+                $.ajax({
+                    url: '/modal_form.php',
+                    data: {
+                        "phone": phone_number,
+                        "url_query": window.location.search,
+                        "url": window.location.href,
+                        "type_lead": "hurry-to-book"
+                    },
+                    type: 'post',
+                    success: function (data) {
+                        yaCounter51334798.reachGoal('popup_uspey');
+                        if (checkAvailabilitySubmitForm()){
+                            yaCounter51334798.reachGoal('total');
+                        }
+                        pxsc("is_lead",1,90);
+                        gtag_report_conversion();
+                        if (window._tmr) _tmr.push({id:'3086590',type:'reachGoal',goal:'zayavka'});
+                        $.cookie('modal_hurry_to_book', 'sender', {
+                            path: '/'
+                        })
+                    },
+                    error: function (e) {
+                    }
+                });
+            } else {
+                phone_input.css({"border": "2px #ff375d solid"});
+            }
+        });
+    }
+});
+
+// raffle-gifts
+$(document).ready(function () {
+    var block = $('#raffle-gifts');
+
+    var brand_name;
+    if (pageInfo.brand) {brand_name = pageInfo.brand.group_name;} else {brand_name = 'автомобиля'}
+    $('.ctl-info .b', block).html(brand_name);
+    $('.b-img',block).attr('src', pageInfo.images.brand);
+
+    $('.popup-raffle-gifts').magnificPopup({
+        type: 'inline',
+        preloader: false,
+        modal: false,
+        focus: "#raffle-gifts",
+        callbacks: {
+            beforeOpen: function () {
+                $.ajax({
+                    url: '/open_popup.php',
+                    data: {"type": "raffle-gifts", "type_car": "new", "project": "vsecrediti.com"},
+                    type: 'post'
+                });
+            },
+            beforeClose: function () {
+                var pageType = getTypePage();
+                switch (pageType) {
+                    case 'brands':
+                        if ($.cookie('modal_profitable_loan') !== 'sender'){
+                            popupOpen(90, 'popup-profitable-loan');
+                        }
+                        break;
+                    case 'model':
+
+                        break;
+                    case 'other':
+
+                        break;
+                }
+            }
+        }
+    });
+
+    $(".js-phone-mask", block).mask("+7 (e99) 999-99-99", {placeholder: " "});
+
+    $('#modal-close,#modal-close-button,.js-close-popup-sec', block).click(function (e) {
+        e.preventDefault();
+        $.magnificPopup.close();
+    });
+
+    $('.js-send-popup-form', block).click(function (e) {
+        e.preventDefault();
+    });
+
+    $('.js-send-popup-form', block).click(function (e) {
+        var phone_input = $('.js-phone-mask', block);
+        var phone_number = phone_input.val();
+        if (validatePhone(phone_number)) {
+            phone_input.css({"border": "2px #343434 solid"});
+            var finish_msg = "<div class=\"popup-final-msg\">Наши операторы скоро свяжутся с Вами</div>";
+            $('.popup-sec__wrap', block).html(finish_msg);
+            $.ajax({
+                url: '/modal_form.php',
+                data: {
+                    "phone": phone_number,
+                    "url_query": window.location.search,
+                    "url": window.location.href,
+                    "type_lead": "raffle-gifts"
+                },
+                type: 'post',
+                success: function (data) {
+                    yaCounter51334798.reachGoal('popup_bingo');
+                    if (checkAvailabilitySubmitForm()){
+                        yaCounter51334798.reachGoal('total');
+                    }
+                    pxsc("is_lead",1,90);
+                    gtag_report_conversion();
+                    if (window._tmr) _tmr.push({id:'3086590',type:'reachGoal',goal:'zayavka'});
+                    $.cookie('modal_raffle_gifts', 'sender', {
+                        path: '/'
+                    })
+                },
+                error: function (e) {
+                }
+            });
+        } else {
+            phone_input.css({"border": "2px #ff375d solid"});
+        }
+    });
+});
+
+
+// Comebacker
+$(document).ready(function () {
+    var block = $('#modal_comebacker');
+
+    $('.popup-comebacker').magnificPopup({
+        type: 'inline',
+        preloader: false,
+        modal: false,
+        focus: "#modal_comebacker",
+        callbacks: {
+            beforeOpen: function () {
+                $.ajax({
+                    url: '/open_popup.php',
+                    data: {"type": "comebacker", "type_car": "new", "project": "vsecrediti.com"},
+                    type: 'post'
+                });
+            },
+            beforeClose: function () {
+
+            }
+        }
+    });
+    $(".js-phone-mask", block).mask("+7 (e99) 999-99-99", {placeholder: " "});
+    $('#modal-close,#modal-close-button,.js-close-popup-sec', block).click(function (e) {
+        e.preventDefault();
+        $.magnificPopup.close();
+    });
+    $('.js-send-popup-form', block).click(function (e) {
+        e.preventDefault();
+    });
+    $('.js-send-popup-form', block).click(function (e) {
+        var phone_input = $('.js-phone-mask', block);
+        var name_input = $('.popup-fields__input[name=name]', block);
+        var phone_number = phone_input.val();
+        var name = name_input.val();
+
+        var val_phone = validatePhone(phone_number);
+        var val_name = validateName(name);
+
+        if (!val_phone) phone_input.css({"border": "2px #ff375d solid"});
+        if (!val_name) name_input.css({"border": "2px #ff375d solid"});
+        if (val_phone) phone_input.css({"border": "2px #343434 solid"});
+        if (val_name) name_input.css({"border": "2px #343434 solid"});
+
+
+        if (val_phone && val_name) {
+            var finish_msg = "<div class=\"popup-final-msg\">Наши операторы скоро свяжутся с Вами</div>";
+            $('.popup-sec__wrap', block).html(finish_msg);
+            $.ajax({
+                url: '/modal_form.php',
+                data: {
+                    "phone": phone_number,
+                    "name": name,
+                    "url_query": window.location.search,
+                    "url": window.location.href,
+                    "type_lead": "comebacker"
+                },
+                type: 'post',
+                success: function (data) {
+                    yaCounter51334798.reachGoal('combacker');
+                    if (checkAvailabilitySubmitForm()){
+                        yaCounter51334798.reachGoal('total');
+                    }
+                    pxsc("is_lead",1,90);
+                    gtag_report_conversion();
+                    if (window._tmr) _tmr.push({id:'3086590',type:'reachGoal',goal:'zayavka'});
+                    console.log(data);
+                },
+                error: function (e) {
+                    console.log(e);
+                }
+            });
+        }
+    });
+});
+
+
+// list-of-cities
+$(document).ready(function () {
+    var block = $('#list-of-cities');
+    $('.popup-list-of-cities').magnificPopup({
+        type: 'inline',
+        preloader: false,
+        modal: false,
+        callbacks: {
+            beforeOpen: function () {},
+            beforeClose: function () {}
+        }
+    });
+});

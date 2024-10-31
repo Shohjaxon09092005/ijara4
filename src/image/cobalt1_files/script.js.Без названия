@@ -1,0 +1,178 @@
+var twoChat_enabled = false;
+var twoChat_clientId,
+    twoChat_activeDialog,
+    twoChat_needOpen;
+function getTwoChat_data() {
+    return {
+        "question": "",
+        "url": location.href,
+        "meta_referer": $.cookie('meta_referer') ? $.cookie('meta_referer') : null,
+        "meta_start_url": $.cookie('meta_start_url') ? $.cookie('meta_start_url') : null,
+        "utm": $.cookie('utm') ? $.cookie('utm') : null,
+        "feed_group": $.cookie('feed_group') ? $.cookie('feed_group') : null,
+        "start_car_id": $.cookie('start_car_id') ? $.cookie('start_car_id') : null,
+        "cookies": JSON.stringify($.cookie()),
+    }
+}
+function getOneChat_data() {
+    return {
+        "url": location.href,
+        "meta_referer": $.cookie('meta_referer') ? $.cookie('meta_referer') : null,
+        "meta_start_url": $.cookie('meta_start_url') ? $.cookie('meta_start_url') : null,
+        "utm": $.cookie('utm') ? $.cookie('utm') : null,
+        "feed_group": $.cookie('feed_group') ? $.cookie('feed_group') : null,
+        "start_car_id": $.cookie('start_car_id') ? $.cookie('start_car_id') : null,
+        "cookies": JSON.stringify($.cookie()),
+    }
+};
+
+if ($.cookie('twoChat_client_id')) {
+    twoChat_clientId = $.cookie('twoChat_client_id');
+} else {
+    twoChat_clientId = makeId();
+    $.cookie('twoChat_client_id', twoChat_clientId, {
+        'path': '/',
+        'expires': 365
+    })
+}
+twoChat_activeDialog = $.cookie('twoChat_is_active_dialog') === null || $.cookie('twoChat_is_active_dialog') === undefined ? false : !!parseInt($.cookie('twoChat_is_active_dialog'));
+twoChat_needOpen = $.cookie('twoChat_need_open') === null || $.cookie('twoChat_need_open') === undefined ? true : !!parseInt($.cookie('twoChat_need_open'));
+
+function chat2(clientId, needOpen, isActiveDialog, data) {
+    window.ChatraSetup = {
+        clientId: clientId
+    };
+    (function (d, w, c) {
+        w.ChatraID = 'vkrENQ3crZgSKjPCF';
+        var s = d.createElement('script');
+        w[c] = w[c] || function () {
+            (w[c].q = w[c].q || []).push(arguments);
+        };
+        s.async = true;
+        s.src = 'https://call.chatra.io/chatra.js';
+        if (d.head) d.head.appendChild(s);
+    })(document, window, 'Chatra');
+    if (needOpen) Chatra('openChat', needOpen);
+    if (!isActiveDialog) {
+        Chatra('updateIntegrationData', data);
+        $.ajax({
+            url: 'https://ac.blogsnow.ru/chat/send-first-message',
+            data: {
+                "client_id": clientId,
+                "question": data.question,
+                "url": data.url
+            },
+            type: 'post',
+            success: function (data) {
+                $.cookie('twoChat_is_active_dialog', 1, {
+                    'path': '/',
+                    'expires': 365
+                });
+                $.cookie('twoChat_need_open', 0, {
+                    'path': '/',
+                    'expires': 365
+                })
+            }
+        });
+    }
+}
+function chat1(show_two_chat) {
+    window._emv = window._emv || [];
+    // var _emv = _emv || [];
+    window._emv['campaign'] = '0832f3473e5c4582b3119857';
+    window._emv['onApiReady'] = function(Api){
+        if ($.cookie('oneChat_saved_visit_params')) return;
+        var i = setInterval(function () {
+            var cookie_key_guid = '__leadback_guid_' + window._emv['campaign'];
+            var storage_text = $.cookie(cookie_key_guid); // Хранилище leadback
+            if (storage_text) {
+                var o = JSON.parse(storage_text);
+                if (o && o.guid) {
+                    clearInterval(i);
+                    var oneChat_data = getOneChat_data();
+                    oneChat_data.visit_uuid = o.guid
+
+                    var x = new XMLHttpRequest();
+                    x.open("POST", "https://ac.blogsnow.ru/chat/setVisitParams", true);
+                    x.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                    x.onload = function (){
+                        $.cookie('oneChat_saved_visit_params', 1, {
+                            'path': '/',
+                            'expires': 365
+                        })
+                    }
+                    x.send(JSON.stringify(oneChat_data));
+                }
+            }
+        }, 1000);
+    };
+
+
+
+    (function () {
+        var em = document.createElement('script');
+        em.type = 'text/javascript';
+        em.async = true;
+        em.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'leadback.ru/js/leadback.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(em, s);
+    })();
+
+    if (show_two_chat) {
+        var ldbckCheckTelInput = setInterval(function () {
+            var block = $(".lb-chat-messages-list [type=tel]");
+            var count = block.length;
+            if (count && block.is(':visible')) {
+                clearInterval(ldbckCheckTelInput);
+                console.log('phone input - isset');
+                var checkTelInput = setInterval(function () {
+                    block = $(".lb-chat-messages-list [type=tel]");
+                    count = block.length;
+                    console.log('is_lead: ' + pxgc('is_lead'));
+                    if (count && block.is(':visible') && pxgc('is_lead') === undefined) {
+                        clearInterval(checkTelInput);
+                        var twoChat_data = getTwoChat_data();
+                        twoChat_data.question = getQuestionChat();
+                        twoChat_data.meta_referer = $.cookie('meta_referer') ? $.cookie('meta_referer') : null;
+                        twoChat_data.meta_start_url = $.cookie('meta_start_url') ? $.cookie('meta_start_url') : null;
+                        twoChat_data.utm = $.cookie('utm') ? $.cookie('utm') : null;
+                        chat1_remove();
+
+                        chat2(twoChat_clientId, twoChat_needOpen, twoChat_activeDialog, twoChat_data);
+                    }
+                }, 20000);
+            }
+        }, 300);
+    }
+}
+
+function checkSpam() {
+    var res;
+    res = $.ajax({
+        url: 'https://ac.blogsnow.ru/leads/user-check-spam',
+        async: false,
+        data: {
+            "url": window.location.href
+        },
+        type: 'get'
+    }).responseText;
+    return $.parseJSON(res);
+}
+
+function getQuestionChat() {var message = '';$('[class=lb-chat-messages-item] .lb-chat-message--is-pushed').each(function () {message = message + "\n" + $(this).text();});return message;}
+function makeId() {var text = "";var possible = "abcdefghijklmnopqrstuvwxyz0123456789";for (var i = 0; i < 15; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));return text;}
+function chat1_remove() {$('#lb_widget-root').remove();$("[src*='leadback.ru']").remove();}
+
+var fp_finder = setInterval(() => {
+    if ($.cookie('fp') && $.cookie('fp2')) {
+        clearInterval(fp_finder);
+
+        if (twoChat_enabled && twoChat_activeDialog) {
+            chat2(twoChat_clientId, twoChat_needOpen, twoChat_activeDialog, {})
+        } else {
+            var spamer = checkSpam();
+            console.log('spamer: ' + spamer);
+            chat1(twoChat_enabled && !spamer);
+        }
+    }
+}, 1000);

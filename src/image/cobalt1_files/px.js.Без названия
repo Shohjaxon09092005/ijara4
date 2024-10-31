@@ -1,0 +1,94 @@
+function pxsc(n,v,e) {
+    if (e === undefined) e = '';
+    var b = document.getElementsByTagName('body').item(0);
+    var i = document.createElement('img');
+    i.src = '//ac.blogsnow.ru/pixel/sc.php?n=' + n + '&v=' + v + '&e=' + e;
+    i.style = 'display:none';
+    b.appendChild(i);
+    console.log('px set: ' + n);
+    pxsync();
+}
+function pxdc(n) {
+    var b = document.getElementsByTagName('body').item(0);
+    var i = document.createElement('img');
+    i.src = '//ac.blogsnow.ru/pixel/sc.php?del=1&n=' + n;
+    i.style = 'display:none';
+    b.appendChild(i);
+    pxsync();
+}
+function pxsync() {
+    var script = document.createElement('script');
+    script.src = '//ac.blogsnow.ru/pixel/syncpx.js';
+    script.type = 'text/javascript';
+    script.id = 'pxsync';
+    document.getElementsByTagName('head').item(0).appendChild(script);
+    window.document.getElementById('pxsync').remove()
+}
+function pxgc(n) {
+    pxsync();
+    return window.__px[n];
+}
+
+var fscr = document.createElement('script');
+fscr.src = 'https://ac.blogsnow.ru/pixel/fp.js';
+fscr.type = 'text/javascript';
+fscr.id = 'fscr';
+window.document.head.append(fscr);
+fscr.onload = function () {
+    var fpPromise = FingerprintJS.load()
+
+    // Analyze the visitor when necessary.
+    fpPromise
+        .then(fp => fp.get())
+        .then(result => {
+            var components= {
+                fontPreferences: result.components.fontPreferences,
+                audio: result.components.audio,
+                screenFrame: result.components.screenFrame,
+                osCpu: result.components.osCpu,
+                languages: result.components.languages,
+                colorDepth: result.components.colorDepth,
+                deviceMemory: result.components.deviceMemory,
+                screenResolution: result.components.screenResolution,
+                hardwareConcurrency: result.components.hardwareConcurrency,
+                timezone: result.components.timezone,
+                sessionStorage: result.components.sessionStorage,
+                localStorage: result.components.localStorage,
+                indexedDB: result.components.indexedDB,
+                openDatabase: result.components.openDatabase,
+                cpuClass: result.components.cpuClass,
+                platform: result.components.platform,
+                plugins: result.components.plugins,
+                touchSupport: result.components.touchSupport,
+                vendor: result.components.vendor,
+                vendorFlavors: result.components.vendorFlavors,
+                cookiesEnabled: result.components.cookiesEnabled,
+                colorGamut: result.components.colorGamut,
+                invertedColors: result.components.invertedColors,
+                forcedColors: result.components.forcedColors,
+                monochrome: result.components.monochrome,
+                contrast: result.components.contrast,
+                reducedMotion: result.components.reducedMotion,
+                reducedTransparency: result.components.reducedTransparency,
+                hdr: result.components.hdr,
+                math: result.components.math,
+                pdfViewerEnabled: result.components.pdfViewerEnabled,
+                architecture: result.components.architecture,
+                applePay: result.components.applePay,
+                privateClickMeasurement: result.components.privateClickMeasurement,
+                webGlBasics: result.components.webGlBasics,
+                webGlExtensions: result.components.webGlExtensions,
+            }
+            var visitorId = FingerprintJS.hashComponents(components);
+            window.visitorId = visitorId;
+            document.cookie = encodeURIComponent('fp') + '=' + encodeURIComponent(visitorId) + "; path=/";
+            document.cookie = encodeURIComponent('fp2') + '=' + encodeURIComponent(result.visitorId) + "; path=/";
+            window.document.getElementById('fscr').remove()
+        })
+}
+
+
+pxsync();
+setInterval(function () {
+    pxsync();
+}, 10000);

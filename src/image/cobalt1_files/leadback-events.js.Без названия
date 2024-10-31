@@ -1,0 +1,84 @@
+var ldbckCheck;
+var goalPulls = [];
+var goalFlushTimer = null;
+var flushTimeout = 1500;
+
+function goalFlush () {
+    for (var i = 0, toi = goalPulls.length; i < toi; i++) {
+
+        console.log(goalPulls[i]);
+
+        // here own code
+        if (goalPulls[i] == 'LEADBACK_CALL') {
+            yaCounter51334798.reachGoal('widget_callback');
+            yaCounter51334798.reachGoal('total');
+            gtag_report_conversion();
+            _tmr.push({id:'3086590',type:'reachGoal',goal:'zayavka'});
+            console.log('+call+total');
+            pxsc("is_lead",1,90);
+        }
+        if (goalPulls[i] == 'LEADBACK_CHAT_OFFLINE_LEAD') {
+            yaCounter51334798.reachGoal('widget_chat');
+            yaCounter51334798.reachGoal('total');
+            gtag_report_conversion();
+            _tmr.push({id:'3086590',type:'reachGoal',goal:'zayavka'});
+            console.log('+chat+total');
+            pxsc("is_lead",1,90);
+        }
+    }
+
+    // dont detele clear pull
+    goalPulls = [];
+
+    return;
+}
+
+ldbckCheck = setInterval(function(){
+    if (typeof ldbck !== 'undefined' && typeof ldbck.sendGoal == 'function') {
+        clearInterval(ldbckCheck);
+
+
+
+        ldbck.sendGoal = function(goal) {
+            if (goalFlushTimer !== null) {
+                clearTimeout(goalFlushTimer);
+            }
+
+            if (goalPulls.length > 0) {
+                var lastGoal = goalPulls[ goalPulls.length - 1];
+
+                // fix LEADBACK_CALL а потом LEADBACK_CHAT_OFFLINE_LEAD
+                if (goal == 'LEADBACK_CHAT_OFFLINE_LEAD' && lastGoal == 'LEADBACK_CALL') {
+                    // remove last goal (LEADBACK_CALL) from pull
+                    goalPulls.pop();
+                }
+            }
+
+            goalPulls[ goalPulls.length ] = goal;
+
+            goalFlushTimer = setTimeout(goalFlush, flushTimeout);
+
+            return false;
+        }
+    }
+}, 300);
+
+ldbckCheckTelChatInput = setInterval(function(){
+    var block = $(".lb-chat-messages-list [type=tel]");
+    var count = block.length;
+    if (count) {
+        clearInterval(ldbckCheckTelChatInput);
+        block.attr('placeholder', '+7');
+        block.mask("+7 (e99) 999-99-99", {placeholder: "_"});
+    }
+}, 300);
+
+ldbckCheckTelCallBackInput = setInterval(function(){
+    var block = $("#lb_phone");
+    var count = block.length;
+    if (count) {
+        clearInterval(ldbckCheckTelCallBackInput);
+        block.attr('placeholder', '+7');
+        block.mask("+7 (e99) 999-99-99", {placeholder: "_"});
+    }
+}, 300);

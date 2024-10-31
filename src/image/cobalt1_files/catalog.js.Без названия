@@ -1,0 +1,523 @@
+function changeColorImage(img) {
+	$("#gal_images").css('background-image', 'url(/files/Image/Gallery/'+img+")");
+}
+
+function changeColorImage2(img) {
+	$("#gal_images").attr('src', '/files/Image/tradein/'+img);
+	$(".color").toggleClass("sel2");
+}
+
+$(document).ready(function () {
+
+	var sliderParams = new Array();
+	sliderParams["min"] = 0;
+	sliderParams["max"] = 60;
+	sliderParams["value"] = 60;
+	sliderParams["step"] = 1;
+
+	sliderParams["slide"] = function (event, ui) {
+		$('#srok').attr('value', (ui.value));
+		calculate();
+	}
+
+	$("#srok_sl").slider(sliderParams);
+	$('#srok').attr('value', (sliderParams["value"]));
+
+
+	var table_height = $("#tab_move1").outerHeight();
+	var count_tr = $("#tab_move1 tr").size();
+	var step = parseInt(table_height / count_tr);
+	var count_active = 6;
+	var k1 = 0;
+	var time = 400;
+	$("#btn_up").click(function(){
+		if(k1 > 0) {			$("#tab_move1").animate({marginTop: "+="+step+"px"}, time);
+			$("#tab_move1_a").animate({marginTop: "+="+step+"px"}, time);
+			k1--;
+		}	});
+	$("#btn_down").click(function(){		if(k1 < count_tr - count_active) {
+			$("#tab_move1").animate({marginTop: "-="+step+"px"}, time);
+			$("#tab_move1_a").animate({marginTop: "-="+step+"px"}, time);
+			k1++;
+		}
+	});
+
+
+
+	$('select[name=compl]').change(function () {
+
+		if ($(this).attr('value')!=$("#compl2").attr('value')) {
+			$('#compl2').getSetSSValue($(this).attr('value'));
+			$("input[name=cost]").val($("select[name=cost] option:selected").html().replace(/ руб./, ''));
+			calculate();
+		}
+
+	});
+
+	$('select[name=cost]').change(function () {
+		if ($(this).attr('value')!=$("#compl1").attr('value')) {
+			$('#compl1').getSetSSValue($(this).attr('value'));
+			$("input[name=cost]").val($("select[name=cost] option:selected").html().replace(/ руб./, ''));
+			calculate();
+		}
+	});
+
+
+
+	$("input[name=monthpay]").blur(function(){
+
+		var firstpay = $("input[name=firstpay]");
+		var monthpay = $("input[name=monthpay]");
+		var month = $("input[name=month]");
+		var cost = $("input[name=cost]");
+		var stav = $("input[name=stav]");
+		var firstpersent = firstpay.val()*100/cost.val();
+		var sum = cost.val()*(1-firstpersent/100);
+		var pc = 8;
+
+
+		//var itg_min = Math.round((sum*pc/1200)/(1-Math.pow(1/(1+pc/1200), 60)));
+		//var itg_max = Math.round((sum*pc/1200)/(1-Math.pow(1/(1+pc/1200), 6)));
+
+		var itg_min = Math.round(5/1200 * (cost.val() - firstpay.val()) * -1 * Math.pow((1 + 5/1200), 60) / (1 - Math.pow((1 + 5/1200), 60)));
+		var itg_max = Math.round(5/1200 * (cost.val() - firstpay.val()) * -1 * Math.pow((1 + 5/1200), 6) / (1 - Math.pow((1 + 5/1200), 6)));
+
+		if (monthpay.val() > itg_max) {
+			$(".monthpay_err").html('Вы ввели слишком большую сумму');
+			monthpay.val(itg_max);
+			month.val(6);
+			$('#slider-range-min').slider('value', 6);
+			return;
+		}
+		if (monthpay.val() < itg_min) {
+			$(".monthpay_err").html('Вы ввели слишком маленькую сумму');
+			monthpay.val(itg_min);
+			month.val(60);
+			$('#slider-range-min').slider('value', 60);
+			return;
+		}
+
+		$(".monthpay_err").html('');
+	});
+
+
+	$("input[name=firstpay]").keyup(function(){
+		calculate();
+
+	});
+
+	$("input[name=month]").keyup(function () {
+
+		if ($(this).val()>60)
+			$(this).val(60);
+
+		calculate();
+
+	});
+
+
+
+	calcstav();
+	calculate();
+
+});
+
+
+function isNumberKey(evt) {
+	var charCode = (evt.which) ? evt.which : event.keyCode
+	if (charCode > 31 && (charCode < 48 || charCode > 57))
+		return false;
+
+	return true;
+}
+
+
+function calculate()
+{
+
+
+	var firstpay = $("input[name=firstpay]");
+	var cost = $("input[name=cost]");
+	var month = $("input[name=month]");
+
+
+	if (month.val()==0) {
+		$("input[name=monthpay]").val(cost.val()-firstpay.val());
+		return;
+	}
+
+	if (cost.val() == 0){
+		firstpay.val(0);
+		return;
+	}
+
+	if ( firstpay.val()*100/cost.val() > 70) {
+		firstpay.val(cost.val()*70/100);
+		$(".firstpay_err").html('Сумма первоначального взноса не может превышать 70% от стоимости автомобиля');
+		//return;
+	} else {
+		$(".firstpay_err").html('');
+	}
+	firstpersent = firstpay.val()*100/cost.val();
+	var sum = cost.val()*(1-firstpersent/100);
+	var pc = 8;
+
+	$("input[name=monthpay]").val(Math.round(5/1200 * (cost.val() - firstpay.val()) * -1 * Math.pow((1 + 5/1200), month.val()) / (1 - Math.pow((1 + 5/1200), month.val()))));
+
+}
+
+
+function calc2()
+{
+	var firstpay = $("input[name=firstpay]");
+	var monthpay = $("input[name=monthpay]");
+	var month = $("input[name=month]");
+	var cost = $("input[name=cost]");
+	var stav = $("input[name=stav]");
+
+
+
+	$(".monthpay_err").html('');
+
+	if (isNaN(parseInt(firstpay.val())) || parseInt(firstpay.val())>trprice()) return;
+
+	if (!isNaN(parseInt(monthpay.val()))){
+		c=parseInt(cost.val());
+		if(isNaN(c)){
+			c=0;
+		}
+		p=parseInt(firstpay.val());
+		if (isNaN(p)){
+			p=0;
+		}
+		s=parseFloat(stav.val())
+		if (isNaN(s)){
+			s=0;
+		}
+		s/=100;
+		m=parseInt(monthpay.val());
+		if (isNaN(m)){
+			m=0;
+		}
+
+		t = Math.log(m/(m + 5/1200 * (c - p) * -1)) / Math.log(1 + 5/1200);
+		t=t.toFixed();
+		month.val(t);
+		$('#slider-range-min').slider('value', t);
+		//alert(t);
+	} else if (!isNaN(parseInt(month.val()))){
+		c=parseInt(cost.val());
+		if(isNaN(c)){
+			c=0;
+		}
+		t=parseInt(month.val());
+		if (isNaN(t)){
+			t=0;
+		}
+		s=parseFloat(stav.val())
+		if (isNaN(s)){
+			s=0;
+		}
+		s/=100;
+		p=parseInt(firstpay.val());
+		if (isNaN(p)){
+			p=0;
+		}
+
+		m=((c-p)*(s*t+12))/(12*t);
+		m=m.toFixed();
+		//monthpay.val(m);
+	}
+}
+
+
+function trprice()
+{
+	return parseInt($('input[name=cost]').val())*0.7;
+}
+
+function calcstav() {
+
+	var firstpay = $("input[name=firstpay]");
+	var cost = $("input[name=cost]");
+	var stav = $("input[name=stav]");
+
+	pr = parseInt(cost.val());
+	if(isNaN(pr)){
+		pr=0;
+	}
+	fp=parseInt(firstpay.val());
+	if (isNaN(fp)){
+		fp=0;
+	}
+	it=pr-fp;
+	if (it<300000)
+		stav.val("5.5");
+	else if (it>=300000 && it<700000)
+		stav.val("4.7");
+	else if (it>=700000 && it<1500000)
+		stav.val("4.2");
+	else if (it>=1500000 && it<2000000)
+		stav.val("3.7");
+	else if (it>=2000000 && it<2500000)
+		stav.val("3.2");
+	else if (it>=2500000)
+		stav.val("0");
+}
+
+function getPricesRange() {
+	$('#price_class').html($("#sel_mod").attr('value'));
+}
+
+
+
+
+/*
+$(document).ready(function () {
+	var sliderParams = new Array();
+	sliderParams["min"] = 0;
+	sliderParams["max"] = 84;
+	sliderParams["value"] = 60;
+	sliderParams["step"] = 1;
+
+	sliderParams["slide"] = function (event, ui) {
+		$('#srok').attr('value', (ui.value));
+		calculate();
+	}
+
+	$("#srok_sl").slider(sliderParams);
+	$('#srok').attr('value', (sliderParams["value"]));
+
+
+	$('select[name=compl]').change(function () {
+
+		//$('select[name=cost]').val($(this).attr('value'));
+		if ($(this).attr('value')!=$("#compl2").attr('value')) {
+			$('#compl2').getSetSSValue($(this).attr('value'));
+			$("input[name=cost]").val($("select[name=cost] option:selected").html().replace(/ руб./, ''));
+			calculate();
+		}
+		//alert();
+	});
+
+	$('select[name=cost]').change(function () {
+		if ($(this).attr('value')!=$("#compl1").attr('value')) {
+			//$('select[name=compl]').val($(this).attr('value'));
+			$('#compl1').getSetSSValue($(this).attr('value'));
+			$("input[name=cost]").val($("select[name=cost] option:selected").html().replace(/ руб./, ''));
+			calculate();
+		}
+		//alert();
+	});
+
+
+
+	$("input[name=monthpay]").blur(function(){
+
+		var firstpay = $("input[name=firstpay]");
+		var monthpay = $("input[name=monthpay]");
+		var month = $("input[name=month]");
+		var cost = $("input[name=cost]");
+		var stav = $("input[name=stav]");
+		var firstpersent = firstpay.val()*100/cost.val();
+		var sum = cost.val()*(1-firstpersent/100);
+		var pc = 8;
+
+
+		//var itg_min = Math.round((sum*pc/1200)/(1-Math.pow(1/(1+pc/1200), 60)));
+		//var itg_max = Math.round((sum*pc/1200)/(1-Math.pow(1/(1+pc/1200), 6)));
+
+		var itg_min = Math.round(5/1200 * (cost.val() - firstpay.val()) * -1 * Math.pow((1 + 5/1200), 60) / (1 - Math.pow((1 + 5/1200), 60)));
+		var itg_max = Math.round(5/1200 * (cost.val() - firstpay.val()) * -1 * Math.pow((1 + 5/1200), 6) / (1 - Math.pow((1 + 5/1200), 6)));
+
+		if (monthpay.val() > itg_max) {
+			$(".monthpay_err").html('Вы ввели слишком большую сумму');
+			monthpay.val(itg_max);
+			month.val(6);
+			$('#slider-range-min').slider('value', 6);
+			return;
+		}
+		if (monthpay.val() < itg_min) {
+			$(".monthpay_err").html('Вы ввели слишком маленькую сумму');
+			monthpay.val(itg_min);
+			month.val(60);
+			$('#slider-range-min').slider('value', 60);
+			return;
+		}
+
+		$(".monthpay_err").html('');
+	});
+
+
+	$("input[name=firstpay]").keyup(function(){
+		calculate();
+
+	});
+
+	$("input[name=month]").keyup(function () {
+
+		if ($(this).val()>60)
+			$(this).val(60);
+
+		calculate();
+
+	});
+
+
+	calcstav();
+	calculate();
+
+});
+
+
+
+function calculate()
+{
+
+
+	var firstpay = $("input[name=firstpay]");
+	var cost = $("input[name=cost]");
+	var month = $("input[name=month]");
+
+	if (month.val()==0) {
+		$("input[name=monthpay]").val(cost.val()-firstpay.val());
+		return;
+	}
+
+	if (cost.val() == 0){
+		firstpay.val(0);
+		return;
+	}
+
+	if ( firstpay.val()*100/cost.val() > 70) {
+		firstpay.val(cost.val()*70/100);
+		$(".firstpay_err").html('Сумма первоначального взноса не может превышать 70% от стоимости автомобиля');
+		//return;
+	} else {
+		$(".firstpay_err").html('');
+	}
+	firstpersent = firstpay.val()*100/cost.val();
+	var sum = cost.val()*(1-firstpersent/100);
+	var pc = 8;
+
+	$("input[name=monthpay]").val(Math.round(5/1200 * (cost.val() - firstpay.val()) * -1 * Math.pow((1 + 5/1200), month.val()) / (1 - Math.pow((1 + 5/1200), month.val()))));
+
+}
+
+
+function calc2()
+{
+	var firstpay = $("input[name=firstpay]");
+	var monthpay = $("input[name=monthpay]");
+	var month = $("input[name=month]");
+	var cost = $("input[name=cost]");
+	var stav = $("input[name=stav]");
+
+
+
+	$(".monthpay_err").html('');
+
+	if (isNaN(parseInt(firstpay.val())) || parseInt(firstpay.val())>trprice()) return;
+
+	if (!isNaN(parseInt(monthpay.val()))){
+		c=parseInt(cost.val());
+		if(isNaN(c)){
+			c=0;
+		}
+		p=parseInt(firstpay.val());
+		if (isNaN(p)){
+			p=0;
+		}
+		s=parseFloat(stav.val())
+		if (isNaN(s)){
+			s=0;
+		}
+		s/=100;
+		m=parseInt(monthpay.val());
+		if (isNaN(m)){
+			m=0;
+		}
+
+		t = Math.log(m/(m + 5/1200 * (c - p) * -1)) / Math.log(1 + 5/1200);
+		t=t.toFixed();
+		month.val(t);
+		$('#slider-range-min').slider('value', t);
+		//alert(t);
+	} else if (!isNaN(parseInt(month.val()))){
+		c=parseInt(cost.val());
+		if(isNaN(c)){
+			c=0;
+		}
+		t=parseInt(month.val());
+		if (isNaN(t)){
+			t=0;
+		}
+		s=parseFloat(stav.val())
+		if (isNaN(s)){
+			s=0;
+		}
+		s/=100;
+		p=parseInt(firstpay.val());
+		if (isNaN(p)){
+			p=0;
+		}
+
+		m=((c-p)*(s*t+12))/(12*t);
+		m=m.toFixed();
+		//monthpay.val(m);
+	}
+}
+
+
+function trprice()
+{
+	return parseInt($('input[name=cost]').val())*0.7;
+}
+
+function calcstav() {
+
+	var firstpay = $("input[name=firstpay]");
+	var cost = $("input[name=cost]");
+	var stav = $("input[name=stav]");
+
+	pr = parseInt(cost.val());
+	if(isNaN(pr)){
+		pr=0;
+	}
+	fp=parseInt(firstpay.val());
+	if (isNaN(fp)){
+		fp=0;
+	}
+	it=pr-fp;
+	if (it<300000)
+		stav.val("5.5");
+	else if (it>=300000 && it<700000)
+		stav.val("4.7");
+	else if (it>=700000 && it<1500000)
+		stav.val("4.2");
+	else if (it>=1500000 && it<2000000)
+		stav.val("3.7");
+	else if (it>=2000000 && it<2500000)
+		stav.val("3.2");
+	else if (it>=2500000)
+		stav.val("0");
+}
+
+function isNumberKey(evt) {
+	var charCode = (evt.which) ? evt.which : event.keyCode
+	if (charCode > 31 && (charCode < 48 || charCode > 57))
+		return false;
+
+	return true;
+}
+
+function changeModPrice() {
+
+	price_id=$("#modification_id").val();
+
+	$("#price_mods").html(ModPrice[price_id]);
+	$(".mod_params").css("display",'none');
+	$("#mod_params"+price_id).css("display",'block');
+}
+*/
+

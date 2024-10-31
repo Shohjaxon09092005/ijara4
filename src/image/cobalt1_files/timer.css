@@ -1,0 +1,51 @@
+#clockdiv{
+    /*font-family: SF UI Display;*/
+    color: #fff;
+    display: inline-block;
+    text-align: center;
+    font-size: 45px;
+    font-weight: bold;
+}
+
+#clockdiv > .clock-item{
+    padding: 10px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+#clockdiv .smalltext{
+    color: #bababa;
+    padding-top: 75px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+#clockdiv .item-int{
+    float: left;
+    width: 55px;
+    height: 65px;
+    background-color: #ff375d;
+    border-radius: 5px;
+    text-align: center;
+}
+#clockdiv .item-int-1{
+    margin-right: 5px;
+}
+#clockdiv .item-int .int{
+    position: relative;
+    top: 4px;
+}
+#clockdiv .separator{
+    display: inline-block;
+    padding: 0 4px;
+}
+#clockdiv .separator .sep-1,
+#clockdiv .separator .sep-2{
+    position: relative;
+    width: 8px;
+    height: 8px;
+    background: #343434;
+    border-radius: 15px;
+}
+#clockdiv .separator .sep-1{top: -59px}
+#clockdiv .separator .sep-2{top: -38px}
